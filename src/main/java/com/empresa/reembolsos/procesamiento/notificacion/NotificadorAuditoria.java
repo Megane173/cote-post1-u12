@@ -5,13 +5,10 @@ import com.empresa.reembolsos.dominio.SolicitudReembolso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import com.empresa.reembolsos.infraestructura.RepositorioSolicitudesJpa;
+
 
 @Component
 public class NotificadorAuditoria implements ObservadorCambioEstado {
-
-    RepositorioSolicitudesJpa rsj;
-    
     private static final Logger log = LoggerFactory.getLogger(NotificadorAuditoria.class);
 
     @Override
