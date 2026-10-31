@@ -45,3 +45,25 @@
 **Alternativa considerada:** Utilizar un `switch` sobre `CategoriaGasto` para seleccionar la calculadora correspondiente.
 
 **Consecuencias:** El mapa reduce la necesidad de modificar código existente al extender el sistema, aunque requiere construir correctamente la asociación entre cada categoría y su calculadora, así como garantizar que cada categoría tenga una implementación registrada.
+
+### Decisión de diseño 4: Permitir estereotipos de Spring sin acoplar el procesamiento a la infraestructura
+
+**Decisión:** Las reglas de arquitectura permitirán que las clases de `procesamiento` utilicen anotaciones de estereotipo de Spring, como `@Component`, pero prohibirán las dependencias hacia los paquetes de infraestructura, adaptadores, Spring Data JPA y Jakarta Persistence. Las clases de procesamiento tampoco deben depender de tipos propios de la capa web.
+
+**Justificación:** Prohibir indiscriminadamente cualquier dependencia de `org.springframework` sería una restricción más estricta de lo necesario para los objetivos actuales del proyecto. Las anotaciones como `@Component` permiten que el contenedor de Spring detecte y registre las calculadoras, los validadores y los notificadores como componentes administrados. Su utilización introduce una dependencia del mecanismo de configuración de Spring, pero no obliga por sí misma a que estos componentes conozcan cómo se almacenan los datos o cómo se reciben las solicitudes HTTP.
+
+En cambio, depender de clases de Spring Data o Jakarta Persistence vincularía el procesamiento con tecnologías concretas de persistencia. Del mismo modo, depender de clases web, como los tipos utilizados para representar solicitudes y respuestas HTTP, mezclaría las responsabilidades del procesamiento con las de la comunicación. Evitar estas dependencias facilita mantener las reglas de negocio independientes de los detalles de almacenamiento y del protocolo de comunicación.
+
+**Trade-off:** Se acepta un acoplamiento limitado a Spring para registrar los componentes, a cambio de conservar una configuración sencilla con el contenedor de dependencias existente. Esta decisión no convierte el procesamiento en una capa completamente independiente de Spring, pero evita imponer una restricción más amplia de lo que requiere la arquitectura actual.
+
+Si en el futuro se busca una independencia completa del framework, se podría retirar las anotaciones de los componentes y trasladar su registro a una configuración externa. Por ahora, ese cambio añadiría complejidad sin una necesidad identificada que lo justifique.
+
+## Qué se descartó y por qué
+
+### Alternativa descartada: Strategy para mecanismos de notificación
+
+**Qué se consideró:** Introducir una interfaz `MecanismoNotificacion` con distintas implementaciones, como `NotificacionApiRest`, `NotificacionCorreo` y `NotificacionMensajeria`, y utilizar el patrón Strategy para seleccionar el mecanismo de entrega. Así, el sistema podría cambiar de mecanismo sin modificar la lógica que gestiona las notificaciones.
+
+**Por qué se descartó:** Actualmente, solo está anunciada una integración con la API externa de Contabilidad y no existen requisitos que exijan admitir varios mecanismos de entrega o intercambiarlos. Además, `ObservadorCambioEstado` ya desacopla el servicio de las implementaciones concretas de los notificadores. Añadir otra abstracción para seleccionar mecanismos de entrega anticiparía una variabilidad que todavía no está documentada, incorporando interfaces, implementaciones y lógica de selección sin una necesidad actual demostrada.
+
+**Qué señal futura haría reconsiderar la decisión:** Se reconsideraría cuando aparezca un requisito concreto que exija utilizar varios mecanismos de entrega, por ejemplo, enviar las notificaciones de Contabilidad mediante API REST y disponer de un mecanismo alternativo por correo electrónico, o permitir seleccionar el canal según el destinatario o el tipo de notificación.
