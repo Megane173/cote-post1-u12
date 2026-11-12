@@ -36,6 +36,7 @@ public class ReglasArquitectura {
             .that().resideInAPackage("..procesamiento.calculo..")
             .and().areNotInterfaces()
             .and().haveSimpleNameStartingWith("Calculadora")
+            .and().haveSimpleNameNotEndingWith("Test")
             .should().implement(CalculadoraReembolso.class);
 
     // Regla 4: los notificadores implementan ObservadorCambioEstado
